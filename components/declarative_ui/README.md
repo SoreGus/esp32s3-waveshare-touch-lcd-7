@@ -78,6 +78,11 @@ UI::run(
 - onTap()
 - modifier()
 
+Buttons automatically provide pressed touch feedback: their background becomes
+18% darker while the touch is held and returns to its normal color when it is
+released or cancelled. This works with both the default button color and a
+custom `background()` color.
+
 ## Custom Modifiers
 
 Create reusable styles by inheriting from `ViewModifier`.

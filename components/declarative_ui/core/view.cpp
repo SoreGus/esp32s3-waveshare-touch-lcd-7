@@ -163,6 +163,49 @@ static void applyPadding(
     );
 }
 
+static Color pressedColor(Color color)
+{
+    const uint32_t value = color.value();
+
+    const auto darken = [](uint8_t channel) {
+        constexpr uint8_t pressedOpacity = 82;
+
+        return static_cast<uint8_t>(
+            (static_cast<uint16_t>(channel) * pressedOpacity) / 100
+        );
+    };
+
+    return Color::rgb(
+        darken(static_cast<uint8_t>(value >> 16U)),
+        darken(static_cast<uint8_t>(value >> 8U)),
+        darken(static_cast<uint8_t>(value))
+    );
+}
+
+static void applyButtonPressedStyle(
+    lv_obj_t* object,
+    const ViewStyle& style
+)
+{
+    const Color normalColor = style.hasBackgroundColor
+        ? style.backgroundColor
+        : Color::Blue();
+
+    lv_obj_set_style_bg_color(
+        object,
+        toLVColor(pressedColor(normalColor)),
+        static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+            static_cast<lv_style_selector_t>(LV_STATE_PRESSED)
+    );
+
+    lv_obj_set_style_bg_opa(
+        object,
+        LV_OPA_COVER,
+        static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+            static_cast<lv_style_selector_t>(LV_STATE_PRESSED)
+    );
+}
+
 void applyViewStyle(
     lv_obj_t* object,
     const ViewStyle& style
@@ -846,6 +889,13 @@ lv_obj_t* View::mount(lv_obj_t* parent) const
         object,
         node_->style
     );
+
+    if (node_->type == ViewType::Button) {
+        applyButtonPressedStyle(
+            object,
+            node_->style
+        );
+    }
 
     if (
         node_->type == ViewType::Shape &&
