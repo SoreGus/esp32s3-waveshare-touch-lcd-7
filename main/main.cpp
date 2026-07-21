@@ -35,6 +35,6 @@ extern "C" void app_main()
     // Compose example
     // DeclarativeUI::UI::run(DeclarativeUI::Examples::Compose::dashboard());
 
-    // Gadgets example
-    DeclarativeUI::UI::run(DeclarativeUI::Examples::Gadgets::showcase());
+    // Bluetooth LE keyboard + TextField example
+    DeclarativeUI::UI::run(DeclarativeUI::Examples::BluetoothKeyboard::showcase());
 }

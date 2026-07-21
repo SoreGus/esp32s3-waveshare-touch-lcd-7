@@ -13,6 +13,7 @@ enum class ViewType {
     Spacer,
     Shape,
     Button,
+    TextField,
     Slider,
     Picker,
     Toggle,
@@ -110,6 +111,11 @@ struct ViewNode {
         bool pillThumb = false;
         Reactive::Binding<int> binding;
     } slider;
+
+    struct TextFieldData {
+        std::string placeholder;
+        Reactive::Binding<String> binding;
+    } textField;
 
     struct PickerData {
         std::vector<std::string> options;

@@ -21,6 +21,7 @@
 #include "views/text.hpp"
 #include "views/shape.hpp"
 #include "views/button.hpp"
+#include "views/text_field.hpp"
 #include "views/controls.hpp"
 
 namespace DeclarativeUI {

@@ -11,6 +11,7 @@ idf_component_register(
         "views/text.cpp"
         "views/shape.cpp"
         "views/button.cpp"
+        "views/text_field.cpp"
         "views/controls.cpp"
 
         "examples/state/examples.cpp"
@@ -26,6 +27,9 @@ idf_component_register(
         "examples/compose/compose_view.cpp"
         "examples/gadgets/gadgets_view.cpp"
         "examples/gadgets/gadgets_view_model.cpp"
+        "examples/bluetooth_keyboard/bluetooth_keyboard_service.cpp"
+        "examples/bluetooth_keyboard/bluetooth_keyboard_view_model.cpp"
+        "examples/bluetooth_keyboard/bluetooth_keyboard_view.cpp"
 
     INCLUDE_DIRS
         "."
@@ -36,6 +40,9 @@ idf_component_register(
 
     REQUIRES
         lvgl
+        esp_hid
+        bt
+        nvs_flash
 )
 
 target_compile_features(

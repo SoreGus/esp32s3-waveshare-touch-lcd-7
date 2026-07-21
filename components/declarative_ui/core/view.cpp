@@ -911,6 +911,42 @@ lv_obj_t* View::mount(lv_obj_t* parent) const
             break;
         }
 
+        case ViewType::TextField: {
+            object = lv_textarea_create(parent);
+            const auto& data = node_->textField;
+            lv_textarea_set_text(object, data.binding.get().c_str());
+            lv_textarea_set_placeholder_text(object, data.placeholder.c_str());
+            lv_textarea_set_one_line(object, false);
+            lv_textarea_set_cursor_click_pos(object, true);
+
+            struct TextFieldContext {
+                Reactive::Binding<String> binding;
+                Reactive::Subscription subscription;
+                bool applying = false;
+            };
+
+            auto* context = new TextFieldContext { .binding = data.binding };
+            context->subscription = data.binding.subscribe([object, context] {
+                if (!Platform::lock(-1)) return;
+                const String value = context->binding.get();
+                if (strcmp(lv_textarea_get_text(object), value.c_str()) != 0) {
+                    context->applying = true;
+                    lv_textarea_set_text(object, value.c_str());
+                    context->applying = false;
+                }
+                Platform::unlock();
+            });
+
+            lv_obj_add_event_cb(object, [](lv_event_t* event) {
+                auto* context = static_cast<TextFieldContext*>(lv_event_get_user_data(event));
+                if (lv_event_get_code(event) == LV_EVENT_VALUE_CHANGED && !context->applying) {
+                    context->binding.set(String(lv_textarea_get_text(lv_event_get_target(event))));
+                }
+                if (lv_event_get_code(event) == LV_EVENT_DELETE) delete context;
+            }, LV_EVENT_ALL, context);
+            break;
+        }
+
         case ViewType::Slider: {
             object = lv_slider_create(parent);
             removeDefaultStyle(object);
