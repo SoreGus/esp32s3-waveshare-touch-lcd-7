@@ -7,6 +7,8 @@
 #include "lvgl.h"
 
 #include "color.hpp"
+#include "string.hpp"
+#include "reactive/binding.hpp"
 
 namespace DeclarativeUI {
 
@@ -63,7 +65,9 @@ public:
     virtual ~View() = default;
 
     View& foregroundColor(Color color);
+    View& foregroundColor(const Reactive::Binding<Color>& color);
     View& background(Color color);
+    View& background(const Reactive::Binding<Color>& color);
 
     View& padding(int value);
 
@@ -107,6 +111,7 @@ public:
     );
 
     View& opacity(uint8_t value);
+    View& opacity(const Reactive::Binding<uint8_t>& value);
 
     View& offset(
         int x,
@@ -118,11 +123,13 @@ public:
     View& font(const lv_font_t* font);
 
     View& hidden(bool value = true);
+    View& hidden(const Reactive::Binding<bool>& value);
     View& scrollable(bool value = true);
 
     View& modifier(const ViewModifier& modifier);
 
     View& fill(Color color);
+    View& fill(const Reactive::Binding<Color>& color);
 
     [[nodiscard]] bool valid() const;
 

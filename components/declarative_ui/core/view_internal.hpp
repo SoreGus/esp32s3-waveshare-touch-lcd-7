@@ -14,7 +14,8 @@ enum class ViewType {
     Shape,
     Button,
     ScrollView,
-    ZStack
+    ZStack,
+    ForEach
 };
 
 enum class StackAxis {
@@ -93,6 +94,10 @@ struct ViewNode {
     std::vector<View> children;
 
     std::function<void()> action;
+
+    std::vector<std::function<void(lv_obj_t*)>> reactiveBindings;
+    std::function<std::vector<View>()> dynamicChildren;
+    std::function<Reactive::Subscription(std::function<void()>)> dynamicSubscription;
 
     ViewStyle style;
 };

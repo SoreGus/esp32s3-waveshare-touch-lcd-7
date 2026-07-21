@@ -12,6 +12,15 @@ idf_component_register(
         "views/shape.cpp"
         "views/button.cpp"
 
+        "examples/state/examples.cpp"
+        "examples/binding/examples.cpp"
+        "examples/state_object/dashboard_view.cpp"
+        "examples/state_object/dashboard_view_model.cpp"
+        "examples/state_object/device_view.cpp"
+        "examples/state_object/device_view_model.cpp"
+        "examples/list/examples.cpp"
+        "examples/for_each/examples.cpp"
+
     INCLUDE_DIRS
         "."
         "core"

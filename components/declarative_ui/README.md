@@ -108,6 +108,44 @@ Buttons automatically provide pressed touch feedback: their background becomes
 released or cancelled. This works with both the default button color and a
 custom `background()` color.
 
+## Reactive state
+
+`State<T>` holds a reactive value. Use `Bind(...)` to update a view whenever
+the value changes.
+
+```cpp
+State<int> temperature(24);
+
+Text(Bind(temperature, [](int value) {
+    return String::format("%d C", value);
+}));
+```
+
+For models with multiple properties, inherit from `ObservableObject`. The
+`published(...)` helper associates a property with the model without requiring
+an explicit `*this` argument.
+
+```cpp
+class DashboardModel final : public ObservableObject {
+public:
+    Published<String> title = published("Dashboard");
+    Published<int> temperature = published(24);
+};
+
+StateObject<DashboardModel> dashboard;
+```
+
+`ListState<T>` and `PublishedList<T>` support `append`, `insert`, `removeAt`,
+`replace`, `move`, `clear`, and `replaceAll`. Use `ForEach` with a stable ID to
+render an observable collection. The examples in `examples/` demonstrate each
+reactive API and can be selected from the application `main.cpp`.
+
+## Examples
+
+Examples are grouped by feature under `examples/state`, `examples/binding`,
+`examples/state_object`, `examples/list`, and `examples/for_each`. The project
+`main.cpp` lists every example and keeps exactly one active for device testing.
+
 ## Custom Modifiers
 
 Create reusable styles by inheriting from `ViewModifier`.

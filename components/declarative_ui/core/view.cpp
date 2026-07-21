@@ -2,6 +2,7 @@
 
 #include <utility>
 
+#include "platform/platform.hpp"
 #include "view_internal.hpp"
 
 namespace DeclarativeUI {
@@ -192,6 +193,41 @@ static void applyButtonPressedStyle(
     );
 }
 
+struct ReactiveBindingContext {
+    Reactive::Subscription subscription;
+};
+
+static void reactiveBindingDeleteHandler(lv_event_t* event)
+{
+    delete static_cast<ReactiveBindingContext*>(lv_event_get_user_data(event));
+}
+
+template <typename T, typename Apply>
+static void registerReactiveBinding(
+    lv_obj_t* object,
+    const Reactive::Binding<T>& binding,
+    Apply apply
+)
+{
+    apply(object, binding.get());
+
+    auto* context = new ReactiveBindingContext();
+    context->subscription = binding.subscribe([object, binding, apply] {
+        if (!Platform::lock(-1)) {
+            return;
+        }
+        apply(object, binding.get());
+        Platform::unlock();
+    });
+
+    lv_obj_add_event_cb(
+        object,
+        reactiveBindingDeleteHandler,
+        LV_EVENT_DELETE,
+        context
+    );
+}
+
 void applyViewStyle(
     lv_obj_t* object,
     const ViewStyle& style
@@ -348,6 +384,18 @@ View& View::foregroundColor(Color color)
     return *this;
 }
 
+View& View::foregroundColor(const Reactive::Binding<Color>& color)
+{
+    if (node_) {
+        node_->reactiveBindings.emplace_back([color](lv_obj_t* object) {
+            registerReactiveBinding(object, color, [](lv_obj_t* target, Color value) {
+                lv_obj_set_style_text_color(target, toLVColor(value), LV_PART_MAIN);
+            });
+        });
+    }
+    return *this;
+}
+
 View& View::background(Color color)
 {
     if (node_) {
@@ -355,6 +403,19 @@ View& View::background(Color color)
         node_->style.backgroundColor = color;
     }
 
+    return *this;
+}
+
+View& View::background(const Reactive::Binding<Color>& color)
+{
+    if (node_) {
+        node_->reactiveBindings.emplace_back([color](lv_obj_t* object) {
+            registerReactiveBinding(object, color, [](lv_obj_t* target, Color value) {
+                lv_obj_set_style_bg_color(target, toLVColor(value), LV_PART_MAIN);
+                lv_obj_set_style_bg_opa(target, LV_OPA_COVER, LV_PART_MAIN);
+            });
+        });
+    }
     return *this;
 }
 
@@ -568,6 +629,18 @@ View& View::opacity(uint8_t value)
     return *this;
 }
 
+View& View::opacity(const Reactive::Binding<uint8_t>& value)
+{
+    if (node_) {
+        node_->reactiveBindings.emplace_back([value](lv_obj_t* object) {
+            registerReactiveBinding(object, value, [](lv_obj_t* target, uint8_t opacity) {
+                lv_obj_set_style_opa(target, opacity, LV_PART_MAIN);
+            });
+        });
+    }
+    return *this;
+}
+
 View& View::offset(
     int x,
     int y
@@ -608,6 +681,19 @@ View& View::hidden(bool value)
     return *this;
 }
 
+View& View::hidden(const Reactive::Binding<bool>& value)
+{
+    if (node_) {
+        node_->reactiveBindings.emplace_back([value](lv_obj_t* object) {
+            registerReactiveBinding(object, value, [](lv_obj_t* target, bool hidden) {
+                if (hidden) lv_obj_add_flag(target, LV_OBJ_FLAG_HIDDEN);
+                else lv_obj_clear_flag(target, LV_OBJ_FLAG_HIDDEN);
+            });
+        });
+    }
+    return *this;
+}
+
 View& View::scrollable(bool value)
 {
     if (node_) {
@@ -624,6 +710,11 @@ View& View::modifier(const ViewModifier& modifier)
 }
 
 View& View::fill(Color color)
+{
+    return background(color);
+}
+
+View& View::fill(const Reactive::Binding<Color>& color)
 {
     return background(color);
 }
@@ -873,6 +964,21 @@ lv_obj_t* View::mount(lv_obj_t* parent) const
 
             break;
         }
+
+        case ViewType::ForEach: {
+            object = lv_obj_create(parent);
+            removeDefaultStyle(object);
+            lv_obj_set_flex_flow(object, LV_FLEX_FLOW_COLUMN);
+            lv_obj_set_flex_align(
+                object,
+                toLVJustify(node_->justify),
+                toLVAlignment(node_->alignment),
+                LV_FLEX_ALIGN_START
+            );
+            lv_obj_set_style_pad_row(object, node_->spacing, LV_PART_MAIN);
+            lv_obj_set_width(object, lv_pct(100));
+            break;
+        }
     }
 
     if (object == nullptr) {
@@ -891,6 +997,10 @@ lv_obj_t* View::mount(lv_obj_t* parent) const
         );
     }
 
+    for (const auto& bind : node_->reactiveBindings) {
+        bind(object);
+    }
+
     if (
         node_->type == ViewType::Shape &&
         node_->shapeType == ShapeType::Circle
@@ -902,8 +1012,41 @@ lv_obj_t* View::mount(lv_obj_t* parent) const
         );
     }
 
-    for (const View& child : node_->children) {
+    const std::vector<View> dynamicChildren = node_->dynamicChildren
+        ? node_->dynamicChildren()
+        : std::vector<View>();
+    const std::vector<View>& children = node_->dynamicChildren
+        ? dynamicChildren
+        : node_->children;
+
+    for (const View& child : children) {
         [[maybe_unused]] lv_obj_t* childObject = child.mount(object);
+    }
+
+    if (node_->dynamicSubscription) {
+        struct DynamicContext {
+            Reactive::Subscription subscription;
+        };
+
+        const std::shared_ptr<ViewNode> node = node_;
+        auto* context = new DynamicContext();
+        context->subscription = node_->dynamicSubscription([object, node] {
+            if (!Platform::lock(-1)) return;
+            lv_obj_clean(object);
+            for (const View& child : node->dynamicChildren()) {
+                [[maybe_unused]] lv_obj_t* childObject = child.mount(object);
+            }
+            lv_obj_update_layout(object);
+            for (lv_obj_t* ancestor = lv_obj_get_parent(object);
+                 ancestor != nullptr;
+                 ancestor = lv_obj_get_parent(ancestor)) {
+                lv_obj_update_layout(ancestor);
+            }
+            Platform::unlock();
+        });
+        lv_obj_add_event_cb(object, [](lv_event_t* event) {
+            delete static_cast<DynamicContext*>(lv_event_get_user_data(event));
+        }, LV_EVENT_DELETE, context);
     }
 
     return object;
