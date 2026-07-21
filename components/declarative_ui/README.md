@@ -1,6 +1,7 @@
 # DeclarativeUI
 
-DeclarativeUI is a lightweight declarative UI framework built on top of LVGL for ESP-IDF.
+DeclarativeUI is a lightweight declarative UI framework built on top of
+**LVGL 8.4** for ESP-IDF.
 
 It provides a simple, composable API inspired by modern declarative UI frameworks while remaining fully native to C++ and embedded systems.
 
@@ -116,7 +117,9 @@ declarative_ui/
 
 ## Platform Integration
 
-The framework is platform-independent.
+The framework is independent of the display hardware, but all rendering must
+be synchronized with the application's LVGL port. Configure it after the LVGL
+port is initialized and before the first call to `UI::run()`.
 
 The host application must provide the LVGL synchronization callbacks.
 
@@ -130,7 +133,7 @@ DeclarativeUI::Platform::configure(
 ## Requirements
 
 - ESP-IDF
-- LVGL 9.x
+- LVGL 8.4
 - C++17 or later
 
 ## License

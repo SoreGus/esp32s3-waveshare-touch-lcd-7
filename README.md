@@ -4,7 +4,7 @@ ESP-IDF project for the **Waveshare ESP32-S3 Touch LCD 7** using LVGL and the cu
 
 ## Requirements
 
-- ESP-IDF 5.5+
+- ESP-IDF 5.5.4
 - ESP32-S3
 - CMake
 - Ninja
@@ -12,7 +12,7 @@ ESP-IDF project for the **Waveshare ESP32-S3 Touch LCD 7** using LVGL and the cu
 ## Components
 
 - **DeclarativeUI** – Declarative C++ UI framework
-- **LVGL** – Graphics library
+- **LVGL 8.4** – Graphics library
 - **GT911** – Touch controller driver
 - **ESP LCD Touch** – ESP-IDF touch abstraction
 
@@ -93,7 +93,7 @@ idf.py build flash monitor
 ```text
 components/
     declarative_ui/
-    lvgl__lvgl/
+    lvgl__lvgl/                 # LVGL 8.4 vendorizado
     espressif__esp_lcd_touch_gt911/
 
 main/
@@ -104,6 +104,20 @@ sdkconfig
 ```
 
 ## Notes
+
+### LVGL and DeclarativeUI
+
+The project currently uses **LVGL 8.4**. `DeclarativeUI` builds its
+declarative C++ view tree on top of that version and renders it through the
+LVGL port configured for the RGB display and GT911 touch controller.
+
+Before calling `DeclarativeUI::UI::run()`, configure the framework with the
+port lock callbacks. This keeps all LVGL object creation and updates
+synchronized with the LVGL task:
+
+```cpp
+DeclarativeUI::Platform::configure(lvgl_port_lock, lvgl_port_unlock);
+```
 
 Do **not** commit:
 
