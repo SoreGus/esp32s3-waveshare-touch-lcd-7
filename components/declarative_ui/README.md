@@ -48,6 +48,26 @@ UI::run(
 - ScrollView
 - Spacer
 
+## Colors
+
+Use one of the predefined colors or create one from RGB or hexadecimal values.
+
+```cpp
+Text("Connected")
+    .foregroundColor(Color::Teal());
+
+Button("Save")
+    .background(Color::hex(0x6750A4));
+
+Rectangle()
+    .fill(Color::rgb(42, 157, 143).lighten(10));
+```
+
+Predefined colors include `Black`, `White`, `Red`, `Pink`, `Purple`, `Indigo`,
+`Blue`, `Cyan`, `Teal`, `Green`, `Lime`, `Yellow`, `Orange`, `Brown`, `Gray`,
+`LightGray`, and `DarkGray`. Use `lighten(percentage)` and
+`darken(percentage)` to derive related colors.
+
 ## Layout Modifiers
 
 - fill()

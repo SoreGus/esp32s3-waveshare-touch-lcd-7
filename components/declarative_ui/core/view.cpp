@@ -165,21 +165,7 @@ static void applyPadding(
 
 static Color pressedColor(Color color)
 {
-    const uint32_t value = color.value();
-
-    const auto darken = [](uint8_t channel) {
-        constexpr uint8_t pressedOpacity = 82;
-
-        return static_cast<uint8_t>(
-            (static_cast<uint16_t>(channel) * pressedOpacity) / 100
-        );
-    };
-
-    return Color::rgb(
-        darken(static_cast<uint8_t>(value >> 16U)),
-        darken(static_cast<uint8_t>(value >> 8U)),
-        darken(static_cast<uint8_t>(value))
-    );
+    return color.darken(18);
 }
 
 static void applyButtonPressedStyle(

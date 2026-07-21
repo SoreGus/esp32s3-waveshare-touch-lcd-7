@@ -6,6 +6,8 @@
 
 #include "lvgl.h"
 
+#include "color.hpp"
+
 namespace DeclarativeUI {
 
 struct ViewNode;
@@ -35,85 +37,6 @@ enum class ScrollAxis {
     Vertical,
     Horizontal,
     Both
-};
-
-class Color {
-public:
-    constexpr explicit Color(uint32_t value)
-        : value_(value)
-    {
-    }
-
-    [[nodiscard]] constexpr uint32_t value() const
-    {
-        return value_;
-    }
-
-    static constexpr Color rgb(
-        uint8_t red,
-        uint8_t green,
-        uint8_t blue
-    )
-    {
-        return Color(
-            (static_cast<uint32_t>(red) << 16U) |
-            (static_cast<uint32_t>(green) << 8U) |
-            static_cast<uint32_t>(blue)
-        );
-    }
-
-    static constexpr Color Black()
-    {
-        return Color(0x000000);
-    }
-
-    static constexpr Color White()
-    {
-        return Color(0xFFFFFF);
-    }
-
-    static constexpr Color Red()
-    {
-        return Color(0xF44336);
-    }
-
-    static constexpr Color Green()
-    {
-        return Color(0x4CAF50);
-    }
-
-    static constexpr Color Blue()
-    {
-        return Color(0x2196F3);
-    }
-
-    static constexpr Color Orange()
-    {
-        return Color(0xFF9800);
-    }
-
-    static constexpr Color Yellow()
-    {
-        return Color(0xFFEB3B);
-    }
-
-    static constexpr Color Gray()
-    {
-        return Color(0x9E9E9E);
-    }
-
-    static constexpr Color LightGray()
-    {
-        return Color(0xD0D0D0);
-    }
-
-    static constexpr Color DarkGray()
-    {
-        return Color(0x303030);
-    }
-
-private:
-    uint32_t value_;
 };
 
 class View;

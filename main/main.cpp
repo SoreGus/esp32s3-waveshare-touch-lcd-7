@@ -11,56 +11,32 @@ static const char* TAG = "app";
 
 constexpr Color screenBackground()
 {
-    return Color::rgb(
-        12,
-        17,
-        26
-    );
+    return Color::hex(0x0C111A);
 }
 
 constexpr Color cardBackground()
 {
-    return Color::rgb(
-        27,
-        34,
-        47
-    );
+    return Color::hex(0x1B222F);
 }
 
 constexpr Color cardBorder()
 {
-    return Color::rgb(
-        55,
-        66,
-        85
-    );
+    return Color::hex(0x374255);
 }
 
 constexpr Color secondaryText()
 {
-    return Color::rgb(
-        158,
-        169,
-        187
-    );
+    return Color::hex(0x9EA9BB);
 }
 
 constexpr Color primaryColor()
 {
-    return Color::rgb(
-        72,
-        139,
-        245
-    );
+    return Color::hex(0x488BF5);
 }
 
 constexpr Color successColor()
 {
-    return Color::rgb(
-        62,
-        201,
-        125
-    );
+    return Color::Green().lighten(15);
 }
 
 class CardModifier final : public ViewModifier {
@@ -173,15 +149,15 @@ View makeSystemActivity()
         HStack({
             RoundedRectangle(5)
                 .frame(28, 34)
-                .fill(Color::rgb(48, 91, 153)),
+                .fill(Color::hex(0x305B99)),
 
             RoundedRectangle(5)
                 .frame(28, 54)
-                .fill(Color::rgb(58, 112, 187)),
+                .fill(Color::hex(0x3A70BB)),
 
             RoundedRectangle(5)
                 .frame(28, 42)
-                .fill(Color::rgb(67, 129, 214)),
+                .fill(Color::hex(0x4381D6)),
 
             RoundedRectangle(5)
                 .frame(28, 72)
@@ -189,7 +165,7 @@ View makeSystemActivity()
 
             RoundedRectangle(5)
                 .frame(28, 58)
-                .fill(Color::rgb(94, 157, 247))
+                .fill(primaryColor().lighten(12))
         })
             .fillWidth()
             .height(80)
@@ -218,7 +194,7 @@ View makeActions()
 
         Button("Touch test")
             .foregroundColor(Color::White())
-            .background(Color::rgb(125, 88, 222))
+            .background(Color::Purple().lighten(12))
             .cornerRadius(14)
             .padding(24, 13)
             .onTap([] {
@@ -232,7 +208,7 @@ View makeActions()
 
         Button("Power")
             .foregroundColor(Color::White())
-            .background(Color::rgb(194, 67, 81))
+            .background(Color::Red().darken(8))
             .cornerRadius(14)
             .padding(24, 13)
             .onTap([] {

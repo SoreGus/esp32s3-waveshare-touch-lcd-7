@@ -93,6 +93,7 @@ idf.py build flash monitor
 ```text
 components/
     declarative_ui/
+    dependences/                 # Port LVGL e integração do LCD Waveshare
     lvgl__lvgl/                 # LVGL 8.4 vendorizado
     espressif__esp_lcd_touch_gt911/
 
