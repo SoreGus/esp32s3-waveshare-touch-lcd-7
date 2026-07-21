@@ -20,6 +20,9 @@ idf_component_register(
         "examples/state_object/device_view_model.cpp"
         "examples/list/examples.cpp"
         "examples/for_each/examples.cpp"
+        "examples/compose/compose_view_model.cpp"
+        "examples/compose/compose_components.cpp"
+        "examples/compose/compose_view.cpp"
 
     INCLUDE_DIRS
         "."

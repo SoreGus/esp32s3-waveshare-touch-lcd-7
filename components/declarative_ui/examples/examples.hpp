@@ -5,3 +5,4 @@
 #include "examples/state_object/examples.hpp"
 #include "examples/list/examples.hpp"
 #include "examples/for_each/examples.hpp"
+#include "examples/compose/examples.hpp"

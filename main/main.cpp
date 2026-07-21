@@ -25,10 +25,13 @@ extern "C" void app_main()
     // DeclarativeUI::UI::run(DeclarativeUI::Examples::StateObject::device());
 
     // ListState examples
-    DeclarativeUI::UI::run(DeclarativeUI::Examples::List::operations());
+    // DeclarativeUI::UI::run(DeclarativeUI::Examples::List::operations());
     // DeclarativeUI::UI::run(DeclarativeUI::Examples::List::replaceAndMove());
 
     // ForEach examples
     // DeclarativeUI::UI::run(DeclarativeUI::Examples::ForEach::sensors());
     // DeclarativeUI::UI::run(DeclarativeUI::Examples::ForEach::cards());
+
+    // Compose example
+    DeclarativeUI::UI::run(DeclarativeUI::Examples::Compose::dashboard());
 }
