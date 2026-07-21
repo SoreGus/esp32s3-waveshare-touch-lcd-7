@@ -42,6 +42,23 @@ View VStack(std::initializer_list<View> children)
     return View(node);
 }
 
+View ZStack(std::initializer_list<View> children)
+{
+    auto node = std::make_shared<ViewNode>();
+
+    node->type = ViewType::ZStack;
+
+    node->children.assign(
+        children.begin(),
+        children.end()
+    );
+
+    node->style.size.width = LV_SIZE_CONTENT;
+    node->style.size.height = LV_SIZE_CONTENT;
+
+    return View(node);
+}
+
 View Spacer()
 {
     auto node = std::make_shared<ViewNode>();

@@ -45,8 +45,13 @@ UI::run(
 - Circle
 - HStack
 - VStack
+- ZStack
 - ScrollView
 - Spacer
+
+`ZStack` overlays its children at the same origin. Children declared later are
+drawn above previous children. Use `frame()` or `fill()` to define its bounds,
+and `offset()` to position an overlaid child.
 
 ## Colors
 

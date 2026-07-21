@@ -103,9 +103,17 @@ View makeStatusCard()
     static const CardModifier cardModifier;
 
     return HStack({
-        Circle()
-            .frame(18, 18)
-            .fill(successColor()),
+        ZStack({
+            Circle()
+                .frame(18, 18)
+                .fill(successColor()),
+
+            Circle()
+                .frame(6, 6)
+                .fill(Color::White())
+                .offset(9, 9)
+        })
+            .frame(18, 18),
 
         VStack({
             Text("Display connected")

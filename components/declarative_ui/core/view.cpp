@@ -865,6 +865,14 @@ lv_obj_t* View::mount(lv_obj_t* parent) const
 
             break;
         }
+
+        case ViewType::ZStack: {
+            object = lv_obj_create(parent);
+
+            removeDefaultStyle(object);
+
+            break;
+        }
     }
 
     if (object == nullptr) {

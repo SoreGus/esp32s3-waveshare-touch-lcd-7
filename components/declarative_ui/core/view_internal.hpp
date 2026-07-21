@@ -13,7 +13,8 @@ enum class ViewType {
     Spacer,
     Shape,
     Button,
-    ScrollView
+    ScrollView,
+    ZStack
 };
 
 enum class StackAxis {
