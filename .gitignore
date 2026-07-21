@@ -1,0 +1,88 @@
+# ESP-IDF build output
+build/
+build-*/
+out/
+
+# ESP-IDF generated files
+sdkconfig.old
+sdkconfig.backup
+sdkconfig.old.*
+sdkconfig.backup.*
+
+# Managed components downloaded by ESP-IDF
+managed_components/
+
+# Keep dependency declarations and lock file
+!idf_component.yml
+!dependencies.lock
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+Makefile
+.ninja_deps
+.ninja_log
+build.ninja
+rules.ninja
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Visual Studio Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# CLion / JetBrains
+.idea/
+cmake-build-*/
+
+# ESP-IDF extension temporary files
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.cache/
+
+# Binary and object files
+*.o
+*.obj
+*.a
+*.elf
+*.bin
+*.map
+*.hex
+
+# Test and coverage output
+coverage/
+*.gcda
+*.gcno
+*.gcov
+
+# Local environment files
+.env
+.env.*
+!.env.example
