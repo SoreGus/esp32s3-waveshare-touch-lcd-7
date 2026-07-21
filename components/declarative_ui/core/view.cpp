@@ -193,6 +193,83 @@ static void applyButtonPressedStyle(
     );
 }
 
+template <typename T>
+struct ControlBindingContext {
+    Reactive::Subscription subscription;
+};
+
+template <typename T>
+static void controlBindingDeleteHandler(lv_event_t* event)
+{
+    delete static_cast<ControlBindingContext<T>*>(lv_event_get_user_data(event));
+}
+
+static int clampControlValue(int value, int minimum, int maximum)
+{
+    return value < minimum ? minimum : (value > maximum ? maximum : value);
+}
+
+static void stylePickerList(lv_obj_t* picker, const ViewNode::PickerData& data)
+{
+    lv_obj_t* list = lv_dropdown_get_list(picker);
+    if (list == nullptr) return;
+    lv_obj_set_style_bg_color(list, toLVColor(data.backgroundColor), LV_PART_MAIN);
+    lv_obj_set_style_text_color(list, toLVColor(data.textColor), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(list, toLVColor(data.selectedColor), LV_PART_SELECTED);
+    lv_obj_set_style_text_color(list, toLVColor(Color::White()), LV_PART_SELECTED);
+    lv_obj_set_style_radius(list, 12, LV_PART_MAIN);
+}
+
+struct SegmentedContext {
+    lv_obj_t* root = nullptr;
+    lv_obj_t* indicator = nullptr;
+    std::vector<lv_obj_t*> labels;
+    int selected = 0;
+    int count = 0;
+    int animationTime = 0;
+    Color textColor = Color::LightGray();
+    Color selectedTextColor = Color::White();
+    Reactive::Binding<int> binding;
+    Reactive::Subscription subscription;
+};
+
+static void layoutSegmented(SegmentedContext* context, bool animated)
+{
+    if (context == nullptr || context->root == nullptr || context->indicator == nullptr || context->count == 0) return;
+
+    const int width = lv_obj_get_content_width(context->root) / context->count;
+    const int height = lv_obj_get_content_height(context->root);
+    if (width <= 0 || height <= 0) return;
+
+    const int selected = context->selected < 0 ? 0 : (context->selected >= context->count ? context->count - 1 : context->selected);
+    const int targetX = width * selected;
+    lv_obj_set_size(context->indicator, width, height);
+    for (int index = 0; index < context->count; ++index) {
+        lv_obj_set_style_text_color(
+            context->labels[index],
+            toLVColor(index == selected ? context->selectedTextColor : context->textColor),
+            LV_PART_MAIN
+        );
+    }
+
+    if (!animated || context->animationTime == 0) {
+        lv_obj_set_x(context->indicator, targetX);
+        return;
+    }
+
+    lv_anim_del(context->indicator, nullptr);
+    lv_anim_t animation;
+    lv_anim_init(&animation);
+    lv_anim_set_var(&animation, context->indicator);
+    lv_anim_set_values(&animation, lv_obj_get_x(context->indicator), targetX);
+    lv_anim_set_time(&animation, context->animationTime);
+    lv_anim_set_path_cb(&animation, lv_anim_path_ease_out);
+    lv_anim_set_exec_cb(&animation, [](void* target, int32_t value) {
+        lv_obj_set_x(static_cast<lv_obj_t*>(target), value);
+    });
+    lv_anim_start(&animation);
+}
+
 struct ReactiveBindingContext {
     Reactive::Subscription subscription;
 };
@@ -833,6 +910,179 @@ lv_obj_t* View::mount(lv_obj_t* parent) const
 
             break;
         }
+
+        case ViewType::Slider: {
+            object = lv_slider_create(parent);
+            removeDefaultStyle(object);
+            const auto& data = node_->slider;
+            lv_slider_set_range(object, data.minimum, data.maximum);
+            lv_slider_set_value(object, clampControlValue(data.value, data.minimum, data.maximum), LV_ANIM_OFF);
+            lv_obj_set_style_bg_color(object, toLVColor(data.emptyColor), LV_PART_MAIN);
+            lv_obj_set_style_bg_opa(object, LV_OPA_COVER, LV_PART_MAIN);
+            lv_obj_set_style_radius(object, LV_RADIUS_CIRCLE, LV_PART_MAIN);
+            lv_obj_set_style_bg_color(object, toLVColor(data.filledColor), LV_PART_INDICATOR);
+            lv_obj_set_style_bg_opa(object, LV_OPA_COVER, LV_PART_INDICATOR);
+            lv_obj_set_style_radius(object, LV_RADIUS_CIRCLE, LV_PART_INDICATOR);
+            lv_obj_set_style_bg_color(object, toLVColor(data.thumbColor), LV_PART_KNOB);
+            lv_obj_set_style_bg_opa(object, LV_OPA_COVER, LV_PART_KNOB);
+            lv_obj_set_style_radius(object, data.pillThumb ? 8 : LV_RADIUS_CIRCLE, LV_PART_KNOB);
+            lv_obj_set_style_width(object, data.pillThumb ? 20 : data.barHeight + 10, LV_PART_KNOB);
+            lv_obj_set_style_height(object, data.barHeight + 10, LV_PART_KNOB);
+
+            auto* context = new ControlBindingContext<int>();
+            context->subscription = data.binding.subscribe([object, binding = data.binding, data] {
+                if (!Platform::lock(-1)) return;
+                lv_slider_set_value(object, clampControlValue(binding.get(), data.minimum, data.maximum), LV_ANIM_ON);
+                Platform::unlock();
+            });
+            lv_obj_add_event_cb(object, controlBindingDeleteHandler<int>, LV_EVENT_DELETE, context);
+            auto* binding = new Reactive::Binding<int>(data.binding);
+            lv_obj_add_event_cb(object, [](lv_event_t* event) {
+                auto* input = static_cast<Reactive::Binding<int>*>(lv_event_get_user_data(event));
+                if (lv_event_get_code(event) == LV_EVENT_VALUE_CHANGED) input->set(lv_slider_get_value(lv_event_get_target(event)));
+                if (lv_event_get_code(event) == LV_EVENT_DELETE) delete input;
+            }, LV_EVENT_ALL, binding);
+            break;
+        }
+
+        case ViewType::Picker: {
+            object = lv_dropdown_create(parent);
+            const auto& data = node_->picker;
+            std::string options;
+            for (size_t index = 0; index < data.options.size(); ++index) {
+                if (index > 0) options += '\n';
+                options += data.options[index];
+            }
+            lv_dropdown_set_options(object, options.c_str());
+            const int maximum = data.options.empty() ? 0 : static_cast<int>(data.options.size() - 1);
+            lv_dropdown_set_selected(object, clampControlValue(data.selected, 0, maximum));
+            lv_dropdown_set_selected_highlight(object, true);
+            lv_obj_set_style_bg_color(object, toLVColor(data.backgroundColor), LV_PART_MAIN);
+            lv_obj_set_style_bg_opa(object, LV_OPA_COVER, LV_PART_MAIN);
+            lv_obj_set_style_text_color(object, toLVColor(data.textColor), LV_PART_MAIN);
+            lv_obj_set_style_border_color(object, toLVColor(data.borderColor), LV_PART_MAIN);
+            lv_obj_set_style_border_width(object, 1, LV_PART_MAIN);
+            lv_obj_set_style_pad_left(object, 14, LV_PART_MAIN);
+            lv_obj_set_style_pad_right(object, 14, LV_PART_MAIN);
+            lv_obj_set_style_radius(object, 12, LV_PART_MAIN);
+            stylePickerList(object, data);
+            auto* context = new ControlBindingContext<int>();
+            context->subscription = data.binding.subscribe([object, binding = data.binding, maximum] {
+                if (!Platform::lock(-1)) return;
+                lv_dropdown_set_selected(object, clampControlValue(binding.get(), 0, maximum));
+                Platform::unlock();
+            });
+            lv_obj_add_event_cb(object, controlBindingDeleteHandler<int>, LV_EVENT_DELETE, context);
+            auto* binding = new Reactive::Binding<int>(data.binding);
+            lv_obj_add_event_cb(object, [](lv_event_t* event) {
+                auto* input = static_cast<Reactive::Binding<int>*>(lv_event_get_user_data(event));
+                if (lv_event_get_code(event) == LV_EVENT_VALUE_CHANGED) input->set(lv_dropdown_get_selected(lv_event_get_target(event)));
+                if (lv_event_get_code(event) == LV_EVENT_DELETE) delete input;
+            }, LV_EVENT_ALL, binding);
+            auto* pickerData = new ViewNode::PickerData(data);
+            lv_obj_add_event_cb(object, [](lv_event_t* event) {
+                auto* style = static_cast<ViewNode::PickerData*>(lv_event_get_user_data(event));
+                if (lv_event_get_code(event) == LV_EVENT_CLICKED) stylePickerList(lv_event_get_target(event), *style);
+                if (lv_event_get_code(event) == LV_EVENT_DELETE) delete style;
+            }, LV_EVENT_ALL, pickerData);
+            break;
+        }
+
+        case ViewType::Toggle: {
+            object = lv_switch_create(parent);
+            const auto& data = node_->toggle;
+            if (data.value) lv_obj_add_state(object, LV_STATE_CHECKED);
+            lv_obj_set_style_bg_color(object, toLVColor(data.offColor), LV_PART_MAIN);
+            lv_obj_set_style_bg_opa(object, LV_OPA_COVER, LV_PART_MAIN);
+            lv_obj_set_style_radius(object, LV_RADIUS_CIRCLE, LV_PART_MAIN);
+            lv_obj_set_style_bg_color(object, toLVColor(data.onColor), LV_PART_INDICATOR | LV_STATE_CHECKED);
+            lv_obj_set_style_bg_opa(object, LV_OPA_COVER, LV_PART_INDICATOR | LV_STATE_CHECKED);
+            lv_obj_set_style_radius(object, LV_RADIUS_CIRCLE, LV_PART_INDICATOR);
+            lv_obj_set_style_bg_color(object, toLVColor(data.thumbColor), LV_PART_KNOB);
+            lv_obj_set_style_bg_opa(object, LV_OPA_COVER, LV_PART_KNOB);
+            lv_obj_set_style_radius(object, LV_RADIUS_CIRCLE, LV_PART_KNOB);
+            lv_obj_set_style_anim_time(object, data.animationTime, LV_PART_MAIN);
+            auto* context = new ControlBindingContext<bool>();
+            context->subscription = data.binding.subscribe([object, binding = data.binding] {
+                if (!Platform::lock(-1)) return;
+                if (binding.get()) lv_obj_add_state(object, LV_STATE_CHECKED); else lv_obj_clear_state(object, LV_STATE_CHECKED);
+                Platform::unlock();
+            });
+            lv_obj_add_event_cb(object, controlBindingDeleteHandler<bool>, LV_EVENT_DELETE, context);
+            auto* binding = new Reactive::Binding<bool>(data.binding);
+            lv_obj_add_event_cb(object, [](lv_event_t* event) {
+                auto* input = static_cast<Reactive::Binding<bool>*>(lv_event_get_user_data(event));
+                if (lv_event_get_code(event) == LV_EVENT_VALUE_CHANGED) input->set(lv_obj_has_state(lv_event_get_target(event), LV_STATE_CHECKED));
+                if (lv_event_get_code(event) == LV_EVENT_DELETE) delete input;
+            }, LV_EVENT_ALL, binding);
+            break;
+        }
+
+        case ViewType::SegmentedControl: {
+            object = lv_obj_create(parent);
+            removeDefaultStyle(object);
+            const auto& data = node_->segmented;
+            const int count = static_cast<int>(data.options.size());
+            auto* context = new SegmentedContext();
+            context->root = object;
+            context->count = count;
+            context->selected = clampControlValue(data.selected, 0, count > 0 ? count - 1 : 0);
+            context->animationTime = data.animationTime;
+            context->binding = data.binding;
+            context->textColor = data.textColor;
+            context->selectedTextColor = data.selectedTextColor;
+
+            lv_obj_set_flex_flow(object, LV_FLEX_FLOW_ROW);
+            lv_obj_set_flex_align(object, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+            lv_obj_set_style_bg_color(object, toLVColor(data.backgroundColor), LV_PART_MAIN);
+            lv_obj_set_style_bg_opa(object, LV_OPA_COVER, LV_PART_MAIN);
+            lv_obj_set_style_radius(object, 14, LV_PART_MAIN);
+            lv_obj_set_style_pad_all(object, 4, LV_PART_MAIN);
+
+            context->indicator = lv_obj_create(object);
+            removeDefaultStyle(context->indicator);
+            lv_obj_add_flag(context->indicator, LV_OBJ_FLAG_IGNORE_LAYOUT);
+            lv_obj_set_style_bg_color(context->indicator, toLVColor(data.selectedColor), LV_PART_MAIN);
+            lv_obj_set_style_bg_opa(context->indicator, LV_OPA_COVER, LV_PART_MAIN);
+            lv_obj_set_style_radius(context->indicator, 10, LV_PART_MAIN);
+
+            for (int index = 0; index < count; ++index) {
+                lv_obj_t* item = lv_obj_create(object);
+                removeDefaultStyle(item);
+                lv_obj_set_flex_grow(item, 1);
+                lv_obj_set_height(item, lv_pct(100));
+                lv_obj_add_flag(item, LV_OBJ_FLAG_CLICKABLE);
+                lv_obj_set_style_bg_opa(item, LV_OPA_TRANSP, LV_PART_MAIN);
+                lv_obj_set_style_radius(item, 10, LV_PART_MAIN);
+
+                lv_obj_t* label = lv_label_create(item);
+                lv_label_set_text(label, data.options[index].c_str());
+                lv_obj_set_style_text_color(label, toLVColor(data.textColor), LV_PART_MAIN);
+                lv_obj_center(label);
+                context->labels.push_back(label);
+
+                struct TapContext { SegmentedContext* segmented; int index; };
+                auto* tap = new TapContext { context, index };
+                lv_obj_add_event_cb(item, [](lv_event_t* event) {
+                    auto* target = static_cast<TapContext*>(lv_event_get_user_data(event));
+                    if (lv_event_get_code(event) == LV_EVENT_CLICKED) target->segmented->binding.set(target->index);
+                    if (lv_event_get_code(event) == LV_EVENT_DELETE) delete target;
+                }, LV_EVENT_ALL, tap);
+            }
+
+            context->subscription = data.binding.subscribe([context, binding = data.binding] {
+                if (!Platform::lock(-1)) return;
+                context->selected = binding.get();
+                layoutSegmented(context, true);
+                Platform::unlock();
+            });
+            lv_obj_add_event_cb(object, [](lv_event_t* event) {
+                auto* context = static_cast<SegmentedContext*>(lv_event_get_user_data(event));
+                if (lv_event_get_code(event) == LV_EVENT_SIZE_CHANGED) layoutSegmented(context, false);
+                if (lv_event_get_code(event) == LV_EVENT_DELETE) delete context;
+            }, LV_EVENT_ALL, context);
+            break;
+        }
         
         case ViewType::ScrollView: {
             object = lv_obj_create(parent);
@@ -989,6 +1239,35 @@ lv_obj_t* View::mount(lv_obj_t* parent) const
         object,
         node_->style
     );
+
+    // The generic view style owns the outer frame. Reapply the control parts
+    // afterwards so specialized colors and dimensions remain authoritative.
+    if (node_->type == ViewType::Slider) {
+        const auto& data = node_->slider;
+        lv_obj_set_style_bg_color(object, toLVColor(data.emptyColor), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(object, toLVColor(data.filledColor), LV_PART_INDICATOR);
+        lv_obj_set_style_bg_color(object, toLVColor(data.thumbColor), LV_PART_KNOB);
+        lv_obj_set_style_width(object, data.pillThumb ? 20 : data.barHeight + 10, LV_PART_KNOB);
+        lv_obj_set_style_height(object, data.barHeight + 10, LV_PART_KNOB);
+        lv_obj_set_style_radius(object, data.pillThumb ? 8 : LV_RADIUS_CIRCLE, LV_PART_KNOB);
+    } else if (node_->type == ViewType::Picker) {
+        const auto& data = node_->picker;
+        lv_obj_set_style_bg_color(object, toLVColor(data.backgroundColor), LV_PART_MAIN);
+        lv_obj_set_style_text_color(object, toLVColor(data.textColor), LV_PART_MAIN);
+        lv_obj_set_style_border_color(object, toLVColor(data.borderColor), LV_PART_MAIN);
+        stylePickerList(object, data);
+    } else if (node_->type == ViewType::Toggle) {
+        const auto& data = node_->toggle;
+        lv_obj_set_style_bg_color(object, toLVColor(data.offColor), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(object, toLVColor(data.onColor), LV_PART_INDICATOR | LV_STATE_CHECKED);
+        lv_obj_set_style_bg_color(object, toLVColor(data.thumbColor), LV_PART_KNOB);
+        lv_obj_set_style_anim_time(object, data.animationTime, LV_PART_MAIN);
+    } else if (node_->type == ViewType::SegmentedControl) {
+        const auto& data = node_->segmented;
+        lv_obj_set_style_bg_color(object, toLVColor(data.backgroundColor), LV_PART_MAIN);
+        lv_obj_set_style_radius(object, 14, LV_PART_MAIN);
+        lv_obj_set_style_pad_all(object, 4, LV_PART_MAIN);
+    }
 
     if (node_->type == ViewType::Button) {
         applyButtonPressedStyle(

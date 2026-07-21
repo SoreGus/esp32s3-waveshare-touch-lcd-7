@@ -10,7 +10,6 @@
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_rgb.h"
 #include "esp_lcd_touch.h"
-#include "esp_timer.h"
 #include "esp_log.h"
 #include "lvgl.h"
 #include "lvgl_port.h"
@@ -465,30 +464,17 @@ static lv_indev_t *indev_init(esp_lcd_touch_handle_t tp)
     return lv_indev_drv_register(&indev_drv_tp); // Register the input device driver
 }
 
-static void tick_increment(void *arg)
-{
-    /* Tell LVGL how many milliseconds have elapsed */
-    lv_tick_inc(LVGL_PORT_TICK_PERIOD_MS); // Increment the LVGL tick count
-}
-
-static esp_err_t tick_init(void)
-{
-    // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
-    const esp_timer_create_args_t lvgl_tick_timer_args = {
-        .callback = &tick_increment, // Set the callback function for the timer
-        .name = "LVGL tick" // Name of the timer
-    };
-    esp_timer_handle_t lvgl_tick_timer = NULL; // Timer handle
-    ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer)); // Create the timer
-    return esp_timer_start_periodic(lvgl_tick_timer, LVGL_PORT_TICK_PERIOD_MS * 1000); // Start the timer
-}
-
 static void lvgl_port_task(void *arg)
 {
     ESP_LOGD(TAG, "Starting LVGL task"); // Log the task start
 
     uint32_t task_delay_ms = LVGL_PORT_TASK_MAX_DELAY_MS; // Set initial task delay
+    TickType_t last_tick = xTaskGetTickCount();
     while (1) {
+        const TickType_t current_tick = xTaskGetTickCount();
+        lv_tick_inc(pdTICKS_TO_MS(current_tick - last_tick));
+        last_tick = current_tick;
+
         if (lvgl_port_lock(-1)) { // Try to lock the LVGL mutex
             task_delay_ms = lv_timer_handler(); // Handle LVGL timer events
             lvgl_port_unlock(); // Unlock the mutex
@@ -506,7 +492,6 @@ static void lvgl_port_task(void *arg)
 esp_err_t lvgl_port_init(esp_lcd_panel_handle_t lcd_handle, esp_lcd_touch_handle_t tp_handle)
 {
     lv_init(); // Initialize LVGL
-    ESP_ERROR_CHECK(tick_init()); // Initialize the tick timer
 
     lv_disp_t *disp = display_init(lcd_handle); // Initialize the display
     assert(disp); // Ensure the display initialization was successful
@@ -566,8 +551,11 @@ bool lvgl_port_notify_rgb_vsync(void)
         lvgl_port_rgb_last_buf = lvgl_port_rgb_next_buf; // Update the last buffer
     }
 #elif LVGL_PORT_AVOID_TEAR_ENABLE
-    // Notify that the current RGB frame buffer has been transmitted
-    xTaskNotifyFromISR(lvgl_task_handle, ULONG_MAX, eNoAction, &need_yield); // Notify the LVGL task
+    // The RGB controller can raise VSync while lvgl_port_init is still
+    // creating the LVGL task. Do not notify a null task handle from the ISR.
+    if (lvgl_task_handle != NULL) {
+        xTaskNotifyFromISR(lvgl_task_handle, ULONG_MAX, eNoAction, &need_yield);
+    }
 #endif
     return (need_yield == pdTRUE); // Return whether a yield is needed
 }

@@ -42,6 +42,7 @@ enum class ScrollAxis {
 };
 
 class View;
+enum class SliderThumb;
 
 class ViewModifier {
 public:
@@ -136,6 +137,17 @@ public:
     [[nodiscard]] lv_obj_t* mount(lv_obj_t* parent) const;
 
     View& onTap(std::function<void()> action);
+
+    View& sliderFilledColor(Color color);
+    View& sliderEmptyColor(Color color);
+    View& sliderThumbColor(Color color);
+    View& sliderBarHeight(int height);
+    View& sliderThumb(SliderThumb style);
+    View& pickerColors(Color background, Color text, Color selected, Color border = Color::hex(0x334155));
+    View& toggleColors(Color on, Color off, Color thumb = Color::White());
+    View& toggleAnimation(int milliseconds);
+    View& segmentedColors(Color background, Color selected, Color text = Color::LightGray(), Color selectedText = Color::White());
+    View& segmentedAnimation(int milliseconds);
 
 protected:
     std::shared_ptr<ViewNode> node_;

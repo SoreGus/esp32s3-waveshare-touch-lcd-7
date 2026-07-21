@@ -49,6 +49,30 @@ UI::run(
 - ScrollView
 - Spacer
 
+## Input Controls
+
+`Slider`, `Picker`, `Toggle`, and `SegmentedControl` work directly with a
+`Binding`, so user interaction and external state changes stay synchronized.
+They expose focused styling for their respective domains, including colors,
+pill/circle thumbs, and animation timing.
+
+```cpp
+State<int> brightness(70);
+State<bool> notifications(true);
+State<int> mode(0);
+
+VStack({
+    Slider(Bind(brightness), 0, 100)
+        .sliderFilledColor(Color::Cyan())
+        .sliderThumb(SliderThumb::Pill),
+    Picker({"Ocean", "Forest", "Sunset"}, Bind(mode)),
+    Toggle(Bind(notifications)).toggleColors(Color::Teal(), Color::DarkGray()),
+    SegmentedControl({"Eco", "Normal", "Boost"}, Bind(mode))
+        .segmentedColors(Color::hex(0x223246), Color::Purple())
+        .segmentedAnimation(220)
+});
+```
+
 `ZStack` overlays its children at the same origin. Children declared later are
 drawn above previous children. Use `frame()` or `fill()` to define its bounds,
 and `offset()` to position an overlaid child.

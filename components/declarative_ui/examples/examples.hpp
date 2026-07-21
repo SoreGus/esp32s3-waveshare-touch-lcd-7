@@ -6,3 +6,4 @@
 #include "examples/list/examples.hpp"
 #include "examples/for_each/examples.hpp"
 #include "examples/compose/examples.hpp"
+#include "examples/gadgets/examples.hpp"

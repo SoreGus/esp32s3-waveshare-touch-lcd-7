@@ -33,5 +33,8 @@ extern "C" void app_main()
     // DeclarativeUI::UI::run(DeclarativeUI::Examples::ForEach::cards());
 
     // Compose example
-    DeclarativeUI::UI::run(DeclarativeUI::Examples::Compose::dashboard());
+    // DeclarativeUI::UI::run(DeclarativeUI::Examples::Compose::dashboard());
+
+    // Gadgets example
+    DeclarativeUI::UI::run(DeclarativeUI::Examples::Gadgets::showcase());
 }

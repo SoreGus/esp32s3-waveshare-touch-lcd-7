@@ -11,6 +11,7 @@ idf_component_register(
         "views/text.cpp"
         "views/shape.cpp"
         "views/button.cpp"
+        "views/controls.cpp"
 
         "examples/state/examples.cpp"
         "examples/binding/examples.cpp"
@@ -23,6 +24,8 @@ idf_component_register(
         "examples/compose/compose_view_model.cpp"
         "examples/compose/compose_components.cpp"
         "examples/compose/compose_view.cpp"
+        "examples/gadgets/gadgets_view.cpp"
+        "examples/gadgets/gadgets_view_model.cpp"
 
     INCLUDE_DIRS
         "."

@@ -13,6 +13,10 @@ enum class ViewType {
     Spacer,
     Shape,
     Button,
+    Slider,
+    Picker,
+    Toggle,
+    SegmentedControl,
     ScrollView,
     ZStack,
     ForEach
@@ -94,6 +98,48 @@ struct ViewNode {
     std::vector<View> children;
 
     std::function<void()> action;
+
+    struct SliderData {
+        int minimum = 0;
+        int maximum = 100;
+        int value = 0;
+        Color filledColor = Color::Blue();
+        Color emptyColor = Color::DarkGray();
+        Color thumbColor = Color::White();
+        int barHeight = 8;
+        bool pillThumb = false;
+        Reactive::Binding<int> binding;
+    } slider;
+
+    struct PickerData {
+        std::vector<std::string> options;
+        int selected = 0;
+        Color backgroundColor = Color::hex(0x223246);
+        Color textColor = Color::White();
+        Color selectedColor = Color::Blue();
+        Color borderColor = Color::hex(0x334155);
+        Reactive::Binding<int> binding;
+    } picker;
+
+    struct ToggleData {
+        bool value = false;
+        Color onColor = Color::Green();
+        Color offColor = Color::DarkGray();
+        Color thumbColor = Color::White();
+        int animationTime = 180;
+        Reactive::Binding<bool> binding;
+    } toggle;
+
+    struct SegmentedData {
+        std::vector<std::string> options;
+        int selected = 0;
+        Color backgroundColor = Color::hex(0x223246);
+        Color selectedColor = Color::Blue();
+        Color textColor = Color::LightGray();
+        Color selectedTextColor = Color::White();
+        int animationTime = 180;
+        Reactive::Binding<int> binding;
+    } segmented;
 
     std::vector<std::function<void(lv_obj_t*)>> reactiveBindings;
     std::function<std::vector<View>()> dynamicChildren;
