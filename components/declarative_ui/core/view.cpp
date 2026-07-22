@@ -1229,10 +1229,39 @@ lv_obj_t* View::mount(lv_obj_t* parent) const
             lv_obj_set_width(object, lv_pct(100));
             break;
         }
+
+        case ViewType::Image: {
+            object = lv_img_create(parent);
+            break;
+        }
+
+        case ViewType::Loading: {
+            object = lv_spinner_create(parent, 1000, 60);
+            lv_obj_set_style_arc_color(object, toLVColor(Color::Blue()), LV_PART_INDICATOR);
+            lv_obj_set_style_arc_width(object, 4, LV_PART_INDICATOR);
+            break;
+        }
+
+        case ViewType::NavigationStack: {
+            object = mountNavigationStack(parent, *node_);
+            break;
+        }
+
+        case ViewType::NavigationLink: {
+            object = mountNavigationLink(parent, *node_);
+            break;
+        }
     }
 
     if (object == nullptr) {
         return nullptr;
+    }
+
+    if (node_->type == ViewType::Image) {
+        const auto& image = node_->image;
+        if (!image.remote) {
+            lv_img_set_src(object, image.localSource != nullptr ? image.localSource : image.source.c_str());
+        }
     }
 
     applyViewStyle(
@@ -1289,6 +1318,10 @@ lv_obj_t* View::mount(lv_obj_t* parent) const
             LV_RADIUS_CIRCLE,
             LV_PART_MAIN
         );
+    }
+
+    if (node_->type == ViewType::NavigationStack) {
+        return object;
     }
 
     const std::vector<View> dynamicChildren = node_->dynamicChildren

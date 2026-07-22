@@ -22,6 +22,13 @@
 #include "views/shape.hpp"
 #include "views/button.hpp"
 #include "views/controls.hpp"
+#include "Views/image.hpp"
+#include "Views/loading.hpp"
+
+#include "Navigation/navigation_stack.hpp"
+#include "Navigation/navigation_link.hpp"
+#include "Navigation/tool_bar.hpp"
+#include "Navigation/title.hpp"
 
 namespace DeclarativeUI {
 

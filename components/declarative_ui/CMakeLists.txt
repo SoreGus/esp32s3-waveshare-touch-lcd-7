@@ -13,6 +13,14 @@ idf_component_register(
         "views/button.cpp"
         "views/controls.cpp"
 
+        "Views/image.cpp"
+        "Views/loading.cpp"
+
+        "Navigation/navigation_stack.cpp"
+        "Navigation/navigation_link.cpp"
+        "Navigation/tool_bar.cpp"
+        "Navigation/title.cpp"
+
         "examples/state/examples.cpp"
         "examples/binding/examples.cpp"
         "examples/state_object/dashboard_view.cpp"
@@ -27,12 +35,16 @@ idf_component_register(
         "examples/gadgets/gadgets_view.cpp"
         "examples/gadgets/gadgets_view_model.cpp"
 
+        "examples/navigation/navigation_view.cpp"
+
     INCLUDE_DIRS
         "."
         "core"
         "platform"
         "layout"
         "views"
+        "Views"
+        "Navigation"
 
     REQUIRES
         lvgl

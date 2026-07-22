@@ -19,7 +19,11 @@ enum class ViewType {
     SegmentedControl,
     ScrollView,
     ZStack,
-    ForEach
+    ForEach,
+    Image,
+    Loading,
+    NavigationStack,
+    NavigationLink
 };
 
 enum class StackAxis {
@@ -141,6 +145,17 @@ struct ViewNode {
         Reactive::Binding<int> binding;
     } segmented;
 
+    struct ImageData {
+        std::string source;
+        const void* localSource = nullptr;
+        bool remote = false;
+    } image;
+
+    struct NavigationLinkData {
+        View destination;
+        int animationTime = 260;
+    } navigationLink;
+
     std::vector<std::function<void(lv_obj_t*)>> reactiveBindings;
     std::function<std::vector<View>()> dynamicChildren;
     std::function<Reactive::Subscription(std::function<void()>)> dynamicSubscription;
@@ -167,5 +182,8 @@ void registerButtonAction(
     lv_obj_t* object,
     const std::function<void()>& action
 );
+
+lv_obj_t* mountNavigationStack(lv_obj_t* parent, const ViewNode& node);
+lv_obj_t* mountNavigationLink(lv_obj_t* parent, const ViewNode& node);
 
 } // namespace DeclarativeUI

@@ -48,6 +48,50 @@ UI::run(
 - ZStack
 - ScrollView
 - Spacer
+- Image
+- Loading
+
+`Image` accepts an LVGL local image descriptor or a local source string. The
+URL form reserves the image area and presents `Loading` while the remote image
+is being resolved.
+
+```cpp
+Image(&img_logo);
+Image("S:/logo.bin");
+Image("https://example.com/logo.jpg", ImageSource::URL);
+```
+
+`Loading()` displays a circular progress indicator and can also be used on its
+own for asynchronous operations.
+
+## Navigation
+
+`NavigationStack` manages a stack of screens. `NavigationLink` pushes a
+destination with a horizontal animation, while `NavigationBackLink` returns to
+the previous screen. `ToolBar`, `ToolBarItem`, and `Title` provide the common
+navigation chrome.
+
+```cpp
+View details = VStack({
+    ToolBar({
+        NavigationBackLink(),
+        Title("Device"),
+        Spacer(),
+        ToolBarItem("Refresh", [] { /* refresh state */ })
+    }),
+    Text("Device details")
+});
+
+UI::run(
+    NavigationStack({
+        VStack({
+            Title("Devices"),
+            NavigationLink("Open device", details)
+        })
+        .fill()
+    })
+);
+```
 
 ## Input Controls
 
@@ -203,6 +247,8 @@ declarative_ui/
 ├── layout/
 ├── platform/
 ├── views/
+├── Views/          # Image and Loading
+├── Navigation/     # NavigationStack, links, toolbar and title
 ├── declarative_ui.hpp
 └── CMakeLists.txt
 ```
