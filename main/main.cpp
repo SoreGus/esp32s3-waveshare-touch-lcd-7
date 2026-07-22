@@ -39,5 +39,8 @@ extern "C" void app_main()
     // DeclarativeUI::UI::run(DeclarativeUI::Examples::Gadgets::showcase());
 
     // Navigation example
-    DeclarativeUI::UI::run(DeclarativeUI::Examples::Navigation::showcase());
+    // DeclarativeUI::UI::run(DeclarativeUI::Examples::Navigation::showcase());
+
+    // Complete offline showcase
+    DeclarativeUI::UI::run(DeclarativeUI::Examples::Showcase::app());
 }

@@ -9,5 +9,6 @@ Deixe apenas uma chamada `UI::run(...)` descomentada por vez.
 - `list/`: operações mutáveis em `ListState`.
 - `for_each/`: conteúdo visual criado a partir de uma coleção observável.
 - `compose/`: uma tela completa que combina os recursos reativos e separa ViewModel, componentes e View.
+- `showcase/`: aplicativo offline com navegação, imagem embutida, controles e listas; combina as APIs da biblioteca em diferentes Views e ViewModels.
 
 Todas as telas usam o layout compartilhado em `shared/example_layout.hpp`: fundo preenchido, cabeçalho fixo e uma área de conteúdo rolável. Isso permite que o mesmo exemplo se adapte à área disponível da tela sem cortar listas maiores.

@@ -37,6 +37,10 @@ idf_component_register(
 
         "examples/navigation/navigation_view.cpp"
 
+        "examples/showcase/showcase_view.cpp"
+        "examples/showcase/showcase_view_models.cpp"
+        "examples/showcase/logo_lvgl.cpp"
+
     INCLUDE_DIRS
         "."
         "core"
@@ -48,6 +52,9 @@ idf_component_register(
 
     REQUIRES
         lvgl
+
+    EMBED_FILES
+        "logo_lvgl.png"
 )
 
 target_compile_features(

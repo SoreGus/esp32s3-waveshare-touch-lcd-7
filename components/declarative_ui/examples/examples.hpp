@@ -8,3 +8,4 @@
 #include "examples/compose/examples.hpp"
 #include "examples/gadgets/examples.hpp"
 #include "examples/navigation/examples.hpp"
+#include "examples/showcase/examples.hpp"
