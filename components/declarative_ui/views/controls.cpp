@@ -159,4 +159,13 @@ View& View::segmentedColors(Color background, Color selected, Color text, Color 
 
 View& View::segmentedAnimation(int milliseconds) { if (node_) node_->segmented.animationTime = std::max(0, milliseconds); return *this; }
 
+View& View::imageStorageSize(int maxWidth, int maxHeight)
+{
+    if (node_ && node_->type == ViewType::Image) {
+        node_->image.storageWidth = std::max(0, maxWidth);
+        node_->image.storageHeight = std::max(0, maxHeight);
+    }
+    return *this;
+}
+
 } // namespace DeclarativeUI

@@ -48,6 +48,8 @@ idf_component_register(
 
     REQUIRES
         lvgl
+        esp_http_client
+        mbedtls
 )
 
 target_compile_features(

@@ -149,6 +149,9 @@ public:
     View& segmentedColors(Color background, Color selected, Color text = Color::LightGray(), Color selectedText = Color::White());
     View& segmentedAnimation(int milliseconds);
 
+    // For remote images, keeps a downsampled copy in memory after download.
+    View& imageStorageSize(int maxWidth, int maxHeight);
+
 protected:
     std::shared_ptr<ViewNode> node_;
 };

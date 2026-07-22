@@ -21,6 +21,18 @@ View NavigationLink(const char* title, View destination)
     return View(std::move(node));
 }
 
+View NavigationLink(View label, View destination)
+{
+    auto node = std::make_shared<ViewNode>();
+    node->type = ViewType::NavigationLink;
+    node->navigationLink.destination = std::move(destination);
+    node->children.push_back(std::move(label));
+    node->style.hasBackgroundColor = true;
+    node->style.backgroundColor = Color::Blue();
+    node->style.cornerRadius = 12;
+    return View(std::move(node));
+}
+
 View NavigationBackLink(const char* title)
 {
     auto node = std::make_shared<ViewNode>();

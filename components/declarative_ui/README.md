@@ -52,13 +52,15 @@ UI::run(
 - Loading
 
 `Image` accepts an LVGL local image descriptor or a local source string. The
-URL form reserves the image area and presents `Loading` while the remote image
-is being resolved.
+URL form reserves the image area and presents `Loading` while the remote PNG
+image is being resolved. Remote downloads are serialized to protect device
+memory; `imageStorageSize` keeps a reduced-resolution copy after download.
 
 ```cpp
 Image(&img_logo);
 Image("S:/logo.bin");
-Image("https://example.com/logo.jpg", ImageSource::URL);
+Image("https://example.com/logo.png", ImageSource::URL);
+Image("https://example.com/cover.png", ImageSource::URL).imageStorageSize(96, 96);
 ```
 
 `Loading()` displays a circular progress indicator and can also be used on its

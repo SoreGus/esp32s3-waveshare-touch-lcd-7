@@ -1231,7 +1231,7 @@ lv_obj_t* View::mount(lv_obj_t* parent) const
         }
 
         case ViewType::Image: {
-            object = lv_img_create(parent);
+            object = mountImage(parent, *node_);
             break;
         }
 
@@ -1255,13 +1255,6 @@ lv_obj_t* View::mount(lv_obj_t* parent) const
 
     if (object == nullptr) {
         return nullptr;
-    }
-
-    if (node_->type == ViewType::Image) {
-        const auto& image = node_->image;
-        if (!image.remote) {
-            lv_img_set_src(object, image.localSource != nullptr ? image.localSource : image.source.c_str());
-        }
     }
 
     applyViewStyle(
@@ -1320,7 +1313,11 @@ lv_obj_t* View::mount(lv_obj_t* parent) const
         );
     }
 
-    if (node_->type == ViewType::NavigationStack) {
+    // Navigation containers mount their pages or custom link labels themselves.
+    if (
+        node_->type == ViewType::NavigationStack ||
+        node_->type == ViewType::NavigationLink
+    ) {
         return object;
     }
 

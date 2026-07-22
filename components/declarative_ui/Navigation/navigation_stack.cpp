@@ -86,6 +86,15 @@ NavigationContext* findContext(lv_obj_t* object)
     return nullptr;
 }
 
+void bubbleTapToNavigationLink(lv_obj_t* object)
+{
+    lv_obj_add_flag(object, LV_OBJ_FLAG_EVENT_BUBBLE);
+    const uint32_t childCount = lv_obj_get_child_cnt(object);
+    for (uint32_t index = 0; index < childCount; ++index) {
+        bubbleTapToNavigationLink(lv_obj_get_child(object, index));
+    }
+}
+
 } // namespace
 
 View NavigationStack(std::initializer_list<View> children)
@@ -121,9 +130,14 @@ lv_obj_t* mountNavigationLink(lv_obj_t* parent, const ViewNode& node)
 {
     lv_obj_t* button = lv_btn_create(parent);
     removeDefaultStyle(button);
-    lv_obj_t* label = lv_label_create(button);
-    lv_label_set_text(label, node.text.c_str());
-    lv_obj_center(label);
+    if (!node.children.empty()) {
+        lv_obj_t* label = node.children.front().mount(button);
+        bubbleTapToNavigationLink(label);
+    } else {
+        lv_obj_t* label = lv_label_create(button);
+        lv_label_set_text(label, node.text.c_str());
+        lv_obj_center(label);
+    }
 
     struct LinkContext {
         View destination;

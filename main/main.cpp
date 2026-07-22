@@ -2,6 +2,7 @@
 #include "platform.hpp"
 #include "declarative_ui.hpp"
 #include "examples/examples.hpp"
+#include "api/zelda_view.hpp"
 
 extern "C" void app_main()
 {
@@ -39,5 +40,10 @@ extern "C" void app_main()
     // DeclarativeUI::UI::run(DeclarativeUI::Examples::Gadgets::showcase());
 
     // Navigation example
-    DeclarativeUI::UI::run(DeclarativeUI::Examples::Navigation::showcase());
+    // DeclarativeUI::UI::run(DeclarativeUI::Examples::Navigation::showcase());
+
+    // API example: pass the credentials for the Wi-Fi network used by the board.
+    DeclarativeUI::UI::run(
+        App::Zelda::compendium("Sore", "atendimento12")
+    );
 }

@@ -1,10 +1,18 @@
 #include "declarative_ui.hpp"
 #include "platform/platform.hpp"
+#include "extra/libs/png/lv_png.h"
 
 namespace DeclarativeUI {
 
 void UI::initialize()
 {
+#if LV_USE_PNG
+    static bool initialized = false;
+    if (!initialized) {
+        lv_png_init();
+        initialized = true;
+    }
+#endif
 }
 
 void UI::render(const View& root)

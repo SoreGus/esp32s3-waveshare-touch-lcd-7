@@ -149,6 +149,8 @@ struct ViewNode {
         std::string source;
         const void* localSource = nullptr;
         bool remote = false;
+        int storageWidth = 0;
+        int storageHeight = 0;
     } image;
 
     struct NavigationLinkData {
@@ -185,5 +187,6 @@ void registerButtonAction(
 
 lv_obj_t* mountNavigationStack(lv_obj_t* parent, const ViewNode& node);
 lv_obj_t* mountNavigationLink(lv_obj_t* parent, const ViewNode& node);
+lv_obj_t* mountImage(lv_obj_t* parent, const ViewNode& node);
 
 } // namespace DeclarativeUI
